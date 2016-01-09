@@ -37,7 +37,6 @@ try:
     import AppKit
     import Quartz
     import objc
-
     mode = "pyobjc"
 except ImportError:
     print "Cannot find Objective-C library files. You don't seem to be running Mac OS X."
@@ -274,47 +273,6 @@ if mode == 'pyobjc':
                 Quartz.CGImageRelease(cropped)
 
             self.saveImages(bitmapdata, filename, self.options)
-
-            if bridge.is_stopped:
-                bridge.start_callback = doGrab
-            else:
-                doGrab()
-
-    def doGrab(self, timer):
-        webview = timer.userInfo()
-        frame = webview.mainFrame()
-        view = frame.frameView().documentView()
-
-        URL = webview.mainFrame().dataSource().initialRequest().URL().absoluteString()
-        filename = self.makeFilename(URL, self.options)
-
-        bitmapdata = self.captureView(view)
-
-        if self.options.selector:
-            doc = frame.DOMDocument()
-            el = doc.querySelector_(self.options.selector)
-
-            if not el:
-                print " ... no element matching %s found?" % self.options.selector
-                self.getURL(webview)
-                return
-
-            left, top = 0, 0
-            parent = el
-            while parent:
-                left += parent.offsetLeft()
-                top += parent.offsetTop()
-                parent = parent.offsetParent()
-
-            zoom = self.options.zoom
-
-            cropRect = view.window().convertRectToBacking_(Foundation.NSMakeRect(zoom * left, zoom * top, zoom * el.offsetWidth(), zoom * el.offsetHeight()))
-
-            cropped = Quartz.CGImageCreateWithImageInRect(bitmapdata.CGImage(), cropRect)
-            bitmapdata = AppKit.NSBitmapImageRep.alloc().initWithCGImage_(cropped)
-            Quartz.CGImageRelease(cropped)
-
-        self.saveImages(bitmapdata, filename, self.options)
 
         print " ... done"
         self.getURL(webview)
