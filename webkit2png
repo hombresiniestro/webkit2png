@@ -39,8 +39,8 @@ try:
     import objc
     mode = "pyobjc"
 except ImportError:
-    print "Cannot find Objective-C library files. Are you sure it is installed?"
-
+    print "Cannot find Objective-C library files. You don't seem to be running Mac OS X."
+    sys.exit()
 if mode != "pyobjc":
 
     try:
@@ -50,8 +50,8 @@ if mode != "pyobjc":
         import webkit
         mode = "pygtk"
     except ImportError:
-        print "Cannot find GTK library files. Are you sure it is installed?"
-sys.exit()
+        print "Cannot find GTK library files. Are you sure GTK is installed?"
+        sys.exit()
 
 if mode == 'pyobjc':
 
@@ -300,15 +300,15 @@ if mode == 'pyobjc':
                     AppKit.NSGraphicsContext.currentContext().setImageInterpolation_(
                             AppKit.NSImageInterpolationHigh)
                     thumbRect = Foundation.NSMakeRect(0.0, 0.0, thumbWidth, thumbHeight)
-                    clipRect = Foundation.NSMakeRect(0.0, 
-                            thumbHeight-options.clipheight, 
+                    clipRect = Foundation.NSMakeRect(0.0,
+                            thumbHeight-options.clipheight,
                             options.clipwidth, options.clipheight)
                     bitmapdata.drawInRect_(thumbRect)
                     thumbOutput = AppKit.NSBitmapImageRep.alloc().initWithFocusedViewRect_(thumbRect)
                     clipOutput = AppKit.NSBitmapImageRep.alloc().initWithFocusedViewRect_(clipRect)
                     scratch.unlockFocus()
 
-                    # save the thumbnails as pngs 
+                    # save the thumbnails as pngs
                     if options.thumb:
                         thumbOutput.representationUsingType_properties_(
                                 AppKit.NSPNGFileType,None
@@ -323,7 +323,7 @@ if mode == 'pyobjc':
                     if self.urls[0] == '-':
                         url = sys.stdin.readline().rstrip()
                         if not url: AppKit.NSApplication.sharedApplication().terminate_(None)
-                    else: 
+                    else:
                         url = self.urls.pop(0)
                 else:
                     AppKit.NSApplication.sharedApplication().terminate_(None)
@@ -364,9 +364,9 @@ if mode == 'pyobjc':
                     self.resizeWebview(view)
 
                     URL = webview.mainFrame().dataSource().initialRequest().URL().absoluteString()
-                    filename = makeFilename(URL, self.options) 
+                    filename = makeFilename(URL, self.options)
 
-                    bitmapdata = self.captureView(view)  
+                    bitmapdata = self.captureView(view)
                     self.saveImages(bitmapdata,filename,self.options)
 
                     print " ... done"
@@ -382,7 +382,7 @@ if mode == 'pyobjc':
           # create a window
           rect = Foundation.NSMakeRect(0,0,100,100)
           win = AppKit.NSWindow.alloc()
-          win.initWithContentRect_styleMask_backing_defer_ (rect, 
+          win.initWithContentRect_styleMask_backing_defer_ (rect,
                   AppKit.NSBorderlessWindowMask, 2, 0)
           if options.debug:
             win.orderFrontRegardless()
@@ -404,66 +404,66 @@ if mode == 'pyobjc':
           loaddelegate.urls = args
           webview.setFrameLoadDelegate_(loaddelegate)
 
-          app.run()    
+          app.run()
 
 if mode == 'pygtk':
-  
+
   class PyGTKBrowser:
-    
+
     def _view_load_finished_cb(self, view, web_frame):
-      
+
       pixmap = view.get_snapshot(None)
       size = pixmap.get_size();
-      
+
       URL = view.get_main_frame().get_uri()
       filename = makeFilename(URL, self.options)
-      
+
       pixbuf = gtk.gdk.Pixbuf(gtk.gdk.COLORSPACE_RGB, False, 8, size[0], size[1])
       pixbuf.get_from_drawable(pixmap, pixmap.get_colormap(),0,0,0,0,-1,-1)
       if self.options.fullsize:
         pixbuf.save(filename + "-full.png", "png")
-      
+
       if self.options.thumb or self.options.clipped:
         thumbWidth = int(size[0] * self.options.scale)
         thumbHeight = int(size[1] * self.options.scale)
-        
+
         thumbbuf = pixbuf.scale_simple(thumbWidth, thumbHeight, gtk.gdk.INTERP_BILINEAR)
         if self.options.thumb:
           thumbbuf.save(filename + "-thumb.png", "png")
-          
+
         if self.options.clipped:
           clipbuf = thumbbuf.subpixbuf(0,thumbHeight-int(self.options.clipheight),int(self.options.clipwidth), int(self.options.clipheight))
           clipbuf.save(filename + "-clip.png", "png")
-      
+
       gtk.main_quit()
-    
+
     def __init__(self, options, args):
       self.options = options;
-      
+
       if options.delay:
         print "--delay is only supported on Mac OS X (for now). Sorry!"
-      
+
       gobject.threads_init()
       window = gtk.Window()
       window.resize(int(options.initWidth),int(options.initHeight))
       view = webkit.WebView()
-      
+
       settings = view.get_settings()
       settings.set_property("auto-load-images", not options.noimages)
       view.set_settings(settings)
-      
+
       view.connect("load-finished", self._view_load_finished_cb)
-      
+
       window.add(view)
       window.show_all()
       view.open(args[0])
       # go go go
       gtk.main()
-    
-  
+
+
 
 def main():
-  
+
     # parse the command line
     usage = """%prog [options] [http://example.net/ ...]
 
@@ -478,7 +478,7 @@ Examples:
 %prog -h | less                     # full documentation"""
 
     cmdparser = optparse.OptionParser(usage, version=("webkit2png " + __version__))
-    
+
     # TODO: add quiet/verbose options
     cmdparser.add_option("--debug", action="store_true",
                          help=optparse.SUPPRESS_HELP)
